@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   EditorMode,
   ToolMode,
@@ -26,6 +26,13 @@ import GridCanvas from './GridCanvas';
 import TextEditor from './TextEditor';
 import TemplateModal from './TemplateModal';
 
+export interface SelectionRect {
+  startR: number;
+  startC: number;
+  endR: number;
+  endC: number;
+}
+
 export default function Editor() {
   const [cols, setCols] = useState(DEFAULT_CANVAS.cols);
   const [rows, setRows] = useState(DEFAULT_CANVAS.rows);
@@ -43,6 +50,17 @@ export default function Editor() {
   const [paletteCollapsed, setPaletteCollapsed] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [textBuffer, setTextBuffer] = useState('');
+
+  // Zoom state
+  const [zoom, setZoom] = useState(100);
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  // Selection state
+  const [selection, setSelection] = useState<SelectionRect | null>(null);
+
+  // Fit menu state
+  const [showFitMenu, setShowFitMenu] = useState(false);
+  const fitRef = useRef<HTMLDivElement>(null);
 
   const grid = history.present.grid;
 
@@ -157,6 +175,112 @@ export default function Editor() {
     setSelectedComponent(null);
   }, []);
 
+  const handleZoomIn = useCallback(() => setZoom((z) => Math.min(300, z + 10)), []);
+  const handleZoomOut = useCallback(() => setZoom((z) => Math.max(25, z - 10)), []);
+  const handleZoomReset = useCallback(() => setZoom(100), []);
+
+  const handleFitToWidth = useCallback(() => {
+    if (!mainRef.current) return;
+    const containerW = mainRef.current.clientWidth - 32;
+    const canvasW = 28 + cols * 9.6;
+    setZoom(Math.round(Math.min(300, Math.max(25, (containerW / canvasW) * 100))));
+  }, [cols]);
+
+  const handleFitToHeight = useCallback(() => {
+    if (!mainRef.current) return;
+    const containerH = mainRef.current.clientHeight - 32;
+    const canvasH = 20 + rows * 20;
+    setZoom(Math.round(Math.min(300, Math.max(25, (containerH / canvasH) * 100))));
+  }, [rows]);
+
+  const handleFitAll = useCallback(() => {
+    if (!mainRef.current) return;
+    const containerW = mainRef.current.clientWidth - 32;
+    const containerH = mainRef.current.clientHeight - 32;
+    const canvasW = 28 + cols * 9.6;
+    const canvasH = 20 + rows * 20;
+    const fitW = (containerW / canvasW) * 100;
+    const fitH = (containerH / canvasH) * 100;
+    setZoom(Math.round(Math.min(300, Math.max(25, Math.min(fitW, fitH)))));
+  }, [cols, rows]);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const mod = e.metaKey || e.ctrlKey;
+      const isInput = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
+
+      if (mod && (e.key === '=' || e.key === '+')) {
+        e.preventDefault();
+        setZoom((z) => Math.min(300, z + 10));
+        return;
+      }
+      if (mod && e.key === '-') {
+        e.preventDefault();
+        setZoom((z) => Math.max(25, z - 10));
+        return;
+      }
+      if (mod && e.key === '0') {
+        e.preventDefault();
+        setZoom(100);
+        return;
+      }
+      if (mod && e.shiftKey && (e.key === 'F' || e.key === 'f')) {
+        e.preventDefault();
+        if (!mainRef.current) return;
+        const containerW = mainRef.current.clientWidth - 32;
+        const canvasW = 28 + cols * 9.6;
+        setZoom(Math.round(Math.min(300, Math.max(25, (containerW / canvasW) * 100))));
+        return;
+      }
+
+      if (!isInput && selection && (e.key === 'Delete' || e.key === 'Backspace')) {
+        e.preventDefault();
+        const g = grid.map((row) => [...row]);
+        const r1 = Math.min(selection.startR, selection.endR);
+        const r2 = Math.max(selection.startR, selection.endR);
+        const c1 = Math.min(selection.startC, selection.endC);
+        const c2 = Math.max(selection.startC, selection.endC);
+        for (let r = r1; r <= r2; r++) {
+          for (let c = c1; c <= c2; c++) {
+            if (r < rows && c < cols) g[r][c] = ' ';
+          }
+        }
+        setHistory((h) => pushState(h, { grid: g, cols, rows }));
+        return;
+      }
+      if (e.key === 'Escape') {
+        setSelection(null);
+        return;
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selection, grid, cols, rows]);
+
+  useEffect(() => {
+    const el = mainRef.current;
+    if (!el) return;
+    const handler = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        setZoom((z) => Math.min(300, Math.max(25, z + (e.deltaY < 0 ? 10 : -10))));
+      }
+    };
+    el.addEventListener('wheel', handler, { passive: false });
+    return () => el.removeEventListener('wheel', handler);
+  }, []);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (fitRef.current && !fitRef.current.contains(e.target as Node)) {
+        setShowFitMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
   return (
     <div className="editor-root">
       <Toolbar
@@ -189,7 +313,7 @@ export default function Editor() {
           />
         )}
 
-        <main className="editor-main">
+        <main className="editor-main" ref={mainRef}>
           {mode === 'grid' ? (
             <GridCanvas
               grid={grid}
@@ -200,6 +324,9 @@ export default function Editor() {
               drawChar={drawChar}
               onGridChange={handleGridChange}
               onComponentPlaced={handleComponentPlaced}
+              zoom={zoom}
+              selection={selection}
+              onSelectionChange={setSelection}
             />
           ) : (
             <TextEditor
@@ -207,6 +334,7 @@ export default function Editor() {
               onChange={setTextBuffer}
               cols={cols}
               rows={rows}
+              zoom={zoom}
             />
           )}
         </main>
@@ -221,9 +349,41 @@ export default function Editor() {
             </svg>
             Copy Markdown
           </button>
+          <button className="status-icon-btn" onClick={handleDownload} title="Download .txt">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+              <path d="M7 2v7M4 7l3 3 3-3M2 11h10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
         </div>
-        <div className="status-bar-right">
+
+        <div className="status-bar-center">
+          <div className="status-separator" />
           <span>{cols}&times;{rows}</span>
+          <div className="status-separator" />
+        </div>
+
+        <div className="status-bar-right">
+          <div className="fit-wrapper" ref={fitRef}>
+            <button className="fit-btn" onClick={() => setShowFitMenu((v) => !v)}>
+              Fit
+              <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
+                <path d="M2.5 4L5 6.5 7.5 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+              </svg>
+            </button>
+            {showFitMenu && (
+              <div className="fit-menu">
+                <button onClick={() => { handleFitToWidth(); setShowFitMenu(false); }}>Fit to Width</button>
+                <button onClick={() => { handleFitToHeight(); setShowFitMenu(false); }}>Fit to Height</button>
+                <button onClick={() => { handleFitAll(); setShowFitMenu(false); }}>Fit All</button>
+                <button onClick={() => { handleZoomReset(); setShowFitMenu(false); }}>Actual Size (100%)</button>
+              </div>
+            )}
+          </div>
+          <div className="zoom-controls">
+            <button className="zoom-btn" onClick={handleZoomOut} disabled={zoom <= 25} title="Zoom out (Ctrl+−)">−</button>
+            <button className="zoom-display" onClick={handleZoomReset} title="Reset zoom (Ctrl+0)">{zoom}%</button>
+            <button className="zoom-btn" onClick={handleZoomIn} disabled={zoom >= 300} title="Zoom in (Ctrl++)">+</button>
+          </div>
         </div>
       </footer>
 

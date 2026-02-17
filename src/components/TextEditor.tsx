@@ -7,10 +7,15 @@ interface TextEditorProps {
   onChange: (text: string) => void;
   cols: number;
   rows: number;
+  zoom: number;
 }
 
-export default function TextEditor({ text, onChange, cols, rows }: TextEditorProps) {
+export default function TextEditor({ text, onChange, cols, rows, zoom }: TextEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const scale = zoom / 100;
+  const scaledFontSize = 13 * scale;
+  const scaledLineH = 20 * scale;
 
   const lines = text.split('\n');
   const lineCount = lines.length;
@@ -41,7 +46,11 @@ export default function TextEditor({ text, onChange, cols, rows }: TextEditorPro
       <div className="text-editor-body">
         <div id="line-numbers" className="line-numbers">
           {Array.from({ length: Math.max(lineCount, rows) }, (_, i) => (
-            <span key={i} className="line-num">
+            <span
+              key={i}
+              className="line-num"
+              style={{ fontSize: scaledFontSize, lineHeight: scaledLineH + 'px', height: scaledLineH }}
+            >
               {i + 1}
             </span>
           ))}
@@ -55,6 +64,7 @@ export default function TextEditor({ text, onChange, cols, rows }: TextEditorPro
           spellCheck={false}
           autoCapitalize="off"
           autoCorrect="off"
+          style={{ fontSize: scaledFontSize, lineHeight: scaledLineH + 'px' }}
         />
       </div>
     </div>

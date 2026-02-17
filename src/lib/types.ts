@@ -16,7 +16,7 @@ export type ComponentCategory =
 
 export type EditorMode = 'grid' | 'text';
 
-export type ToolMode = 'select' | 'draw' | 'erase';
+export type ToolMode = 'select' | 'draw' | 'erase' | 'box-select';
 
 export interface CanvasSize {
   cols: number;

@@ -131,6 +131,15 @@ export default function Toolbar({
               </svg>
             </button>
             <button
+              className={`tool-btn ${tool === 'box-select' ? 'active' : ''}`}
+              onClick={() => onToolChange('box-select')}
+              title="Box select / Region"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <rect x="2" y="2" width="10" height="10" rx="0.5" stroke="currentColor" strokeWidth="1.2" strokeDasharray="2 2" />
+              </svg>
+            </button>
+            <button
               className={`tool-btn ${tool === 'draw' ? 'active' : ''}`}
               onClick={() => onToolChange('draw')}
               title="Freehand draw"
