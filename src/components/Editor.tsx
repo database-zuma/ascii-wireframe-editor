@@ -158,8 +158,8 @@ export default function Editor() {
 
   const handleTemplateSelect = useCallback(
     (template: Template) => {
-      const tCols = Math.max(cols, template.cols);
-      const tRows = Math.max(rows, template.rows);
+      const tCols = template.cols;
+      const tRows = template.rows;
       const newGrid = textToGrid(template.content, tCols, tRows);
       setCols(tCols);
       setRows(tRows);
@@ -168,7 +168,7 @@ export default function Editor() {
       );
       if (mode === 'text') setTextBuffer(gridToText(newGrid));
     },
-    [cols, rows, mode]
+    [mode]
   );
 
   const handleComponentPlaced = useCallback(() => {

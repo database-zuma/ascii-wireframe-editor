@@ -5,8 +5,8 @@ export const templates: Template[] = [
     id: 'landing',
     name: 'Landing Page',
     description: 'Hero section with navigation, headline, CTA, and feature cards',
-    cols: 80,
-    rows: 24,
+    cols: 82,
+    rows: 18,
     content: `┌──────────────────────────────────────────────────────────────────────────────┐
 │  Logo   │  Home  │  About  │  Pricing  │  Blog  │              [Sign Up]    │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -30,8 +30,8 @@ export const templates: Template[] = [
     id: 'dashboard',
     name: 'Dashboard',
     description: 'App dashboard with sidebar, stat cards, and chart area',
-    cols: 80,
-    rows: 24,
+    cols: 82,
+    rows: 15,
     content: `┌──────────────────────────────────────────────────────────────────────────────┐
 │  App  │  Dashboard  │  Reports  │  Settings  │               [Avatar]       │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -52,8 +52,8 @@ export const templates: Template[] = [
     id: 'login',
     name: 'Login Form',
     description: 'Centered login card with email, password, and CTA',
-    cols: 80,
-    rows: 24,
+    cols: 49,
+    rows: 22,
     content: `
             ┌─────────────────────────────────┐
             │         ┌───┐                   │
@@ -81,8 +81,8 @@ export const templates: Template[] = [
     id: 'settings',
     name: 'Settings Page',
     description: 'Form-heavy page with sections, toggles, and inputs',
-    cols: 80,
-    rows: 24,
+    cols: 82,
+    rows: 25,
     content: `┌──────────────────────────────────────────────────────────────────────────────┐
 │  App  │  Dashboard  │  Reports  │  Settings  │               [Avatar]       │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -113,8 +113,8 @@ export const templates: Template[] = [
     id: 'data-table',
     name: 'Data Table View',
     description: 'Search bar, filters, data table with pagination',
-    cols: 80,
-    rows: 24,
+    cols: 82,
+    rows: 20,
     content: `┌──────────────────────────────────────────────────────────────────────────────┐
 │  App  │  Dashboard  │  Users  │  Settings  │                 [Avatar]       │
 └──────────────────────────────────────────────────────────────────────────────┘

@@ -22,6 +22,7 @@ export interface CanvasSize {
   cols: number;
   rows: number;
   label: string;
+  desc?: string;
 }
 
 export interface Template {
@@ -46,9 +47,12 @@ export interface HistoryEntry {
 }
 
 export const CANVAS_PRESETS: CanvasSize[] = [
-  { cols: 60, rows: 20, label: '60×20' },
-  { cols: 80, rows: 24, label: '80×24' },
-  { cols: 120, rows: 40, label: '120×40' },
+  { cols: 160, rows: 42, label: 'Desktop HD', desc: '16:9 · 1920×1080' },
+  { cols: 120, rows: 36, label: 'Laptop', desc: '16:10 · 1440×900' },
+  { cols: 100, rows: 38, label: 'Tablet Landscape', desc: '4:3 · 1024×768' },
+  { cols: 64, rows: 50, label: 'Tablet Portrait', desc: '3:4 · 768×1024' },
+  { cols: 44, rows: 78, label: 'Mobile Portrait', desc: '9:19.5 · 390×844' },
+  { cols: 80, rows: 24, label: 'Terminal', desc: '80×24 standard' },
 ];
 
 export const DEFAULT_CANVAS: CanvasSize = CANVAS_PRESETS[1];

@@ -85,7 +85,8 @@ export default function Toolbar({
     setShowSizeMenu(false);
   }
 
-  const currentLabel = `${cols}×${rows}`;
+  const matchingPreset = CANVAS_PRESETS.find((p) => p.cols === cols && p.rows === rows);
+  const currentLabel = matchingPreset ? matchingPreset.label : `${cols}×${rows}`;
 
   return (
     <header className="toolbar">
@@ -205,7 +206,8 @@ export default function Toolbar({
                     setShowSizeMenu(false);
                   }}
                 >
-                  {p.label}
+                  <span className="size-option-label">{p.label}</span>
+                  {p.desc && <span className="size-option-desc">{p.desc}</span>}
                 </button>
               ))}
               <div className="size-custom">
